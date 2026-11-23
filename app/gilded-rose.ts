@@ -53,7 +53,7 @@ function updateItem(item: Item): void {
     // Aged Brie se bonifie en vieillissant : 1 point par nuit, 2 une fois les
     // jours restants passés sous 0 (après le décompte du jour).
     case AGED_BRIE:
-      item.sellIn = item.sellIn - 1;
+      item.sellIn--;
       increaseQuality(item, item.sellIn < 0 ? 2 : 1);
       return;
 
@@ -63,7 +63,7 @@ function updateItem(item: Item): void {
     // dire que le concert est passé.
     case BACKSTAGE_PASS:
       increaseQuality(item, backstagePassGain(item.sellIn));
-      item.sellIn = item.sellIn - 1;
+      item.sellIn--;
       if (item.sellIn < 0) {
         item.quality = 0;
       }
@@ -73,7 +73,7 @@ function updateItem(item: Item): void {
     // code ne connaît pas encore). Il perd 1 point par nuit, 2 une fois les
     // jours restants passés sous 0 (après le décompte du jour).
     default:
-      item.sellIn = item.sellIn - 1;
+      item.sellIn--;
       decreaseQuality(item, item.sellIn < 0 ? 2 : 1);
   }
 }

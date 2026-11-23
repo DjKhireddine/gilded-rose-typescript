@@ -99,35 +99,32 @@ describe('Article normal', () => {
  * qualité est encore au-dessus de 0.
  * Il est reconnu au début de son nom : la spécification parle d'un fournisseur
  * de produits invoqués, donc d'une famille d'articles, pas d'un seul nom.
- *
- * Tests écrits avant le code : tant que la règle n'existe pas, ils sont
- * marqués it.failing, et Jest exige qu'ils échouent.
  */
 describe('Article Conjured', () => {
-  it.failing('perd 2 points par nuit', () => {
+  it('perd 2 points par nuit', () => {
     expect(afterOneNight(CONJURED, 3, 6)).toEqual({ sellIn: 2, quality: 4 });
   });
 
   // Charnière, comme pour l'article normal : à sellIn 1, il reste 0 jour après
   // le décompte, ce qui n'est pas sous 0 : pas encore de doublement.
-  it.failing('perd encore 2 points, pas 4, la veille de sa date (sellIn 1)', () => {
+  it('perd encore 2 points, pas 4, la veille de sa date (sellIn 1)', () => {
     expect(afterOneNight(CONJURED, 1, 6)).toEqual({ sellIn: 0, quality: 4 });
   });
 
-  it.failing('perd 4 points par nuit une fois sa date passée', () => {
+  it('perd 4 points par nuit une fois sa date passée', () => {
     expect(afterOneNight(CONJURED, 0, 10)).toEqual({ sellIn: -1, quality: 6 });
   });
 
   // Plancher : avec 1 point pour 2 à perdre, ou 3 pour 4, la qualité s'arrête
   // à 0 au lieu de passer en négatif.
-  it.failing('ne descend jamais sous 0', () => {
+  it('ne descend jamais sous 0', () => {
     expect(afterOneNight(CONJURED, 3, 1)).toEqual({ sellIn: 2, quality: 0 });
     expect(afterOneNight(CONJURED, 0, 3)).toEqual({ sellIn: -1, quality: 0 });
   });
 
   // Fige le choix de reconnaître Conjured au début du nom, et non au seul nom
   // de l'article d'exemple.
-  it.failing('reconnaît tout article dont le nom commence par « Conjured »', () => {
+  it('reconnaît tout article dont le nom commence par « Conjured »', () => {
     expect(afterOneNight('Conjured Sword', 3, 6)).toEqual({ sellIn: 2, quality: 4 });
   });
 

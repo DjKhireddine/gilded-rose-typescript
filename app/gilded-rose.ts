@@ -18,6 +18,11 @@ const AGED_BRIE = 'Aged Brie';
 const BACKSTAGE_PASS = 'Backstage passes to a TAFKAL80ETC concert';
 const SULFURAS = 'Sulfuras, Hand of Ragnaros';
 
+// Les articles Conjured forment une famille, reconnue au début du nom
+// (« Conjured Mana Cake », par exemple). La spécification parle d'un
+// fournisseur de produits invoqués, pas d'un article unique.
+const CONJURED_PREFIX = 'Conjured';
+
 // Bornes de la qualité des articles qui vieillissent. Sulfuras, à 80, n'est
 // pas concerné : il ne change jamais.
 const MIN_QUALITY = 0;
@@ -69,12 +74,16 @@ function updateItem(item: Item): void {
       }
       return;
 
-    // Article normal : tout article sans règle à lui (Conjured compris, que le
-    // code ne connaît pas encore). Il perd 1 point par nuit, 2 une fois les
-    // jours restants passés sous 0 (après le décompte du jour).
-    default:
+    // Article normal : tout article sans règle à lui. Il perd 1 point par nuit,
+    // 2 une fois les jours restants passés sous 0 (après le décompte du jour).
+    // Un article Conjured est un article normal qui, selon la spécification,
+    // « se dégrade deux fois plus vite » : il perd le double.
+    default: {
       item.sellIn--;
-      decreaseQuality(item, item.sellIn < 0 ? 2 : 1);
+      const loss = item.sellIn < 0 ? 2 : 1;
+      const isConjured = item.name.startsWith(CONJURED_PREFIX);
+      decreaseQuality(item, isConjured ? loss * 2 : loss);
+    }
   }
 }
 

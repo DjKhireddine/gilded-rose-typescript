@@ -8,12 +8,15 @@
     "pretest": "rimraf app/**/*.js test/**/*.js",
     "test:jest": "jest",
     "test:jest:watch": "jest --watchAll",
+    "test:mutation": "stryker run",
     "test:mocha": "nyc mocha",
     "test:vitest": "vitest --coverage"
   },
   "license": "MIT",
   "private": true,
   "devDependencies": {
+    "@stryker-mutator/core": "^10.1.1",
+    "@stryker-mutator/jest-runner": "^10.1.1",
     "@types/chai": "^4.2.22",
     "@types/jest": "^29.4.0",
     "@types/mocha": "^10.0.1",

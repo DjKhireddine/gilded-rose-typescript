@@ -21,6 +21,7 @@ import { Item, GildedRose } from '@/gilded-rose';
 const NORMAL = '+5 Dexterity Vest';
 const CONJURED = 'Conjured Mana Cake';
 const AGED_BRIE = 'Aged Brie';
+const BACKSTAGE_PASS = 'Backstage passes to a TAFKAL80ETC concert';
 
 // Crée un article, laisse passer une nuit et renvoie ses nouvelles valeurs.
 function afterOneNight(name: string, sellIn: number, quality: number) {
@@ -136,5 +137,75 @@ describe('Aged Brie', () => {
   // raison d'être que pour l'article normal.
   it('au-dessus de 50, garde sa qualité sans être ramené à 50 (comportement actuel)', () => {
     expect(afterOneNight(AGED_BRIE, 5, 60)).toEqual({ sellIn: 4, quality: 60 });
+  });
+});
+
+/**
+ * Billet de concert : sa valeur monte à l'approche du concert, puis tombe à 0.
+ * Avant le décompte du jour : la qualité gagne 1 point, plus 1 point de bonus
+ * à moins de 11 jours (sellIn < 11), plus 1 autre à moins de 6 jours
+ * (sellIn < 6) ; chaque point n'est ajouté que si la qualité est encore sous
+ * 50. Après le décompte, si les jours restants sont sous 0, la qualité tombe
+ * à 0.
+ * La spécification dit « 10 jours ou moins » et « 5 jours ou moins » : c'est
+ * identique au code pour des nombres entiers de jours.
+ * Les tests vont par paires, de part et d'autre de chaque seuil (11 et 10,
+ * 6 et 5) : c'est là qu'une erreur d'un jour se cache.
+ */
+describe('Billet de concert (Backstage passes)', () => {
+  // 11 n'est pas « moins de 11 » : pas de bonus.
+  it('à 11 jours, gagne 1 point', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, 11, 20)).toEqual({ sellIn: 10, quality: 21 });
+  });
+
+  // Premier jour du bonus sellIn < 11.
+  it('à 10 jours, gagne 2 points', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, 10, 20)).toEqual({ sellIn: 9, quality: 22 });
+  });
+
+  // 6 n'est pas « moins de 6 » : un seul bonus.
+  it('à 6 jours, gagne encore 2 points', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, 6, 20)).toEqual({ sellIn: 5, quality: 22 });
+  });
+
+  // Premier jour du second bonus sellIn < 6.
+  it('à 5 jours, gagne 3 points', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, 5, 20)).toEqual({ sellIn: 4, quality: 23 });
+  });
+
+  // Les bonus se calculent avant le décompte : à sellIn 1, les deux
+  // s'appliquent. Après le décompte, il reste 0 jour, ce qui n'est pas sous 0 :
+  // pas encore de chute.
+  it('la veille du concert (sellIn 1), gagne encore 3 points', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, 1, 20)).toEqual({ sellIn: 0, quality: 23 });
+  });
+
+  // La spécification dit seulement « après le concert ». Le code décompte le
+  // jour avant de regarder la date : la chute a donc lieu dès la nuit où
+  // sellIn passe de 0 à -1, et les 3 points gagnés juste avant sont perdus
+  // avec le reste.
+  it('tombe à 0 la nuit où sellIn passe de 0 à -1', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, 0, 20)).toEqual({ sellIn: -1, quality: 0 });
+  });
+
+  // Après le concert, les bonus s'appliquent encore, puis la qualité est
+  // remise à 0 : elle reste donc à 0.
+  it('reste à 0 après le concert', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, -1, 0)).toEqual({ sellIn: -2, quality: 0 });
+  });
+
+  // Chaque point n'est ajouté que si la qualité est encore sous 50 : à 49,
+  // seul le premier passe ; à 48 avec 3 points possibles, seuls les deux
+  // premiers passent.
+  it('ne dépasse jamais 50, même avec ses bonus', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, 10, 49)).toEqual({ sellIn: 9, quality: 50 });
+    expect(afterOneNight(BACKSTAGE_PASS, 5, 48)).toEqual({ sellIn: 4, quality: 50 });
+  });
+
+  // Hors spécification : à 60, la qualité n'est pas sous 50, donc aucun point
+  // n'est ajouté, bonus compris, et rien ne la ramène à 50. Même raison d'être
+  // que pour l'article normal.
+  it('au-dessus de 50, garde sa qualité sans être ramené à 50 (comportement actuel)', () => {
+    expect(afterOneNight(BACKSTAGE_PASS, 5, 60)).toEqual({ sellIn: 4, quality: 60 });
   });
 });

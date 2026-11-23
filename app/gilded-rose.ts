@@ -18,6 +18,11 @@ const AGED_BRIE = 'Aged Brie';
 const BACKSTAGE_PASS = 'Backstage passes to a TAFKAL80ETC concert';
 const SULFURAS = 'Sulfuras, Hand of Ragnaros';
 
+// Bornes de la qualité des articles qui vieillissent. Sulfuras, à 80, n'est
+// pas concerné : il ne change jamais.
+const MIN_QUALITY = 0;
+const MAX_QUALITY = 50;
+
 export class GildedRose {
   items: Array<Item>;
 
@@ -44,34 +49,26 @@ function updateItem(item: Item): void {
     return;
   }
 
-  // Aged Brie se bonifie en vieillissant : 1 point par nuit, puis 1 point de
-  // plus une fois les jours restants passés sous 0. Chaque point n'est ajouté
-  // que si la qualité est sous 50 : une qualité déjà au-dessus ne bouge pas.
+  // Aged Brie se bonifie en vieillissant : 1 point par nuit, 2 une fois les
+  // jours restants passés sous 0 (après le décompte du jour).
   if (item.name === AGED_BRIE) {
-    if (item.quality < 50) {
-      item.quality = item.quality + 1;
-    }
     item.sellIn = item.sellIn - 1;
-    if (item.sellIn < 0 && item.quality < 50) {
-      item.quality = item.quality + 1;
-    }
+    increaseQuality(item, item.sellIn < 0 ? 2 : 1);
     return;
   }
 
   // Billet de concert : sa valeur monte à l'approche du concert, puis tombe à 0.
-  // Les bonus se calculent sur les jours restants avant le décompte : 1 point,
-  // 1 de plus à moins de 11 jours, encore 1 à moins de 6 jours, chacun
-  // seulement si la qualité est sous 50. Après le décompte, des jours restants
-  // sous 0 veulent dire que le concert est passé.
+  // À la différence du Brie, les bonus se calculent sur les jours restants
+  // avant le décompte : 1 point, 1 de plus à moins de 11 jours, encore 1 à
+  // moins de 6 jours. Après le décompte, des jours restants sous 0 veulent dire
+  // que le concert est passé.
   if (item.name === BACKSTAGE_PASS) {
-    if (item.quality < 50) {
-      item.quality = item.quality + 1;
-      if (item.sellIn < 11 && item.quality < 50) {
-        item.quality = item.quality + 1;
-      }
-      if (item.sellIn < 6 && item.quality < 50) {
-        item.quality = item.quality + 1;
-      }
+    increaseQuality(item, 1);
+    if (item.sellIn < 11) {
+      increaseQuality(item, 1);
+    }
+    if (item.sellIn < 6) {
+      increaseQuality(item, 1);
     }
     item.sellIn = item.sellIn - 1;
     if (item.sellIn < 0) {
@@ -81,14 +78,27 @@ function updateItem(item: Item): void {
   }
 
   // Article normal : tout article sans règle à lui (Conjured compris, que le
-  // code ne connaît pas encore). 1 point par nuit, 1 de plus une fois les jours
-  // restants passés sous 0, chacun seulement si la qualité est au-dessus de 0 :
-  // une qualité déjà négative ne bouge pas.
-  if (item.quality > 0) {
-    item.quality = item.quality - 1;
-  }
+  // code ne connaît pas encore). Il perd 1 point par nuit, 2 une fois les jours
+  // restants passés sous 0 (après le décompte du jour).
   item.sellIn = item.sellIn - 1;
-  if (item.sellIn < 0 && item.quality > 0) {
+  decreaseQuality(item, item.sellIn < 0 ? 2 : 1);
+}
+
+// Ajoute des points un par un, tant que la qualité est sous MAX_QUALITY.
+// Point par point plutôt qu'avec Math.min : Math.min ramènerait à 50 une
+// qualité qui le dépasse déjà, ce que le code d'origine ne fait pas (test
+// « comportement actuel »). Une qualité au-dessus de 50 ne gagne donc rien.
+function increaseQuality(item: Item, points: number): void {
+  for (let added = 0; added < points && item.quality < MAX_QUALITY; added++) {
+    item.quality = item.quality + 1;
+  }
+}
+
+// Retire des points un par un, tant que la qualité est au-dessus de
+// MIN_QUALITY. Même principe : une qualité déjà négative ne perd rien et n'est
+// pas ramenée à 0 (test « comportement actuel »).
+function decreaseQuality(item: Item, points: number): void {
+  for (let removed = 0; removed < points && item.quality > MIN_QUALITY; removed++) {
     item.quality = item.quality - 1;
   }
 }

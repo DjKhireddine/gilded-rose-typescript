@@ -20,6 +20,7 @@ import { Item, GildedRose } from '@/gilded-rose';
 
 const NORMAL = '+5 Dexterity Vest';
 const CONJURED = 'Conjured Mana Cake';
+const AGED_BRIE = 'Aged Brie';
 
 // Crée un article, laisse passer une nuit et renvoie ses nouvelles valeurs.
 function afterOneNight(name: string, sellIn: number, quality: number) {
@@ -91,5 +92,49 @@ describe('Article normal', () => {
   // article normal. Ce test sera remplacé quand la fonctionnalité sera ajoutée.
   it('« Conjured » est pour l\'instant traité comme un article normal (comportement actuel)', () => {
     expect(afterOneNight(CONJURED, 3, 6)).toEqual({ sellIn: 2, quality: 5 });
+  });
+});
+
+/**
+ * Aged Brie : il se bonifie avec le temps.
+ * Chaque nuit, le jour est décompté et la qualité gagne 1 point ; 2 points si,
+ * après le décompte, les jours restants sont sous 0. Chaque point n'est ajouté
+ * que si la qualité est encore sous 50. La spécification ne mentionne pas ce
+ * doublement après la date.
+ */
+describe('Aged Brie', () => {
+  it('gagne 1 point par nuit', () => {
+    expect(afterOneNight(AGED_BRIE, 10, 20)).toEqual({ sellIn: 9, quality: 21 });
+  });
+
+  // Charnière : à sellIn 1, il reste 0 jour après le décompte, ce qui n'est pas
+  // sous 0 : un seul point.
+  it('gagne encore 1 seul point la veille de sa date (sellIn 1)', () => {
+    expect(afterOneNight(AGED_BRIE, 1, 20)).toEqual({ sellIn: 0, quality: 21 });
+  });
+
+  // À sellIn 0, le décompte donne -1, sous 0 : le second point s'ajoute dès
+  // cette nuit-là.
+  it('gagne 2 points par nuit une fois sa date passée', () => {
+    expect(afterOneNight(AGED_BRIE, 0, 20)).toEqual({ sellIn: -1, quality: 22 });
+  });
+
+  // Plafond : à 50, la qualité n'est plus sous 50 (quality < 50), donc aucun
+  // point n'est ajouté.
+  it('ne dépasse jamais 50', () => {
+    expect(afterOneNight(AGED_BRIE, 10, 50)).toEqual({ sellIn: 9, quality: 50 });
+  });
+
+  // Le premier point amène la qualité à 50 ; le second n'est alors pas ajouté,
+  // car la qualité n'est plus sous 50. Résultat : 50, pas 51.
+  it('après sa date, à 49, ne gagne qu\'un point : le plafond de 50 bloque le second', () => {
+    expect(afterOneNight(AGED_BRIE, 0, 49)).toEqual({ sellIn: -1, quality: 50 });
+  });
+
+  // Hors spécification : à 60, la qualité n'est pas sous 50, donc aucun point
+  // n'est ajouté, et rien ne la ramène à 50. Absent de l'inventaire d'exemple : même
+  // raison d'être que pour l'article normal.
+  it('au-dessus de 50, garde sa qualité sans être ramené à 50 (comportement actuel)', () => {
+    expect(afterOneNight(AGED_BRIE, 5, 60)).toEqual({ sellIn: 4, quality: 60 });
   });
 });

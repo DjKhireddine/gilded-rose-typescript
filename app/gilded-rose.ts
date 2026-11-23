@@ -58,33 +58,37 @@ function updateItem(item: Item): void {
     return;
   }
 
-  if (item.name !== BACKSTAGE_PASS) {
-    if (item.quality > 0) {
-      item.quality = item.quality - 1;
-    }
-  } else {
+  // Billet de concert : sa valeur monte à l'approche du concert, puis tombe à 0.
+  // Les bonus se calculent sur les jours restants avant le décompte : 1 point,
+  // 1 de plus à moins de 11 jours, encore 1 à moins de 6 jours, chacun
+  // seulement si la qualité est sous 50. Après le décompte, des jours restants
+  // sous 0 veulent dire que le concert est passé.
+  if (item.name === BACKSTAGE_PASS) {
     if (item.quality < 50) {
       item.quality = item.quality + 1;
-      if (item.sellIn < 11) {
-        if (item.quality < 50) {
-          item.quality = item.quality + 1;
-        }
+      if (item.sellIn < 11 && item.quality < 50) {
+        item.quality = item.quality + 1;
       }
-      if (item.sellIn < 6) {
-        if (item.quality < 50) {
-          item.quality = item.quality + 1;
-        }
+      if (item.sellIn < 6 && item.quality < 50) {
+        item.quality = item.quality + 1;
       }
     }
+    item.sellIn = item.sellIn - 1;
+    if (item.sellIn < 0) {
+      item.quality = 0;
+    }
+    return;
+  }
+
+  // Article normal : tout article sans règle à lui (Conjured compris, que le
+  // code ne connaît pas encore). 1 point par nuit, 1 de plus une fois les jours
+  // restants passés sous 0, chacun seulement si la qualité est au-dessus de 0 :
+  // une qualité déjà négative ne bouge pas.
+  if (item.quality > 0) {
+    item.quality = item.quality - 1;
   }
   item.sellIn = item.sellIn - 1;
-  if (item.sellIn < 0) {
-    if (item.name !== BACKSTAGE_PASS) {
-      if (item.quality > 0) {
-        item.quality = item.quality - 1;
-      }
-    } else {
-      item.quality = item.quality - item.quality;
-    }
+  if (item.sellIn < 0 && item.quality > 0) {
+    item.quality = item.quality - 1;
   }
 }

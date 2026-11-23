@@ -58,18 +58,11 @@ function updateItem(item: Item): void {
   }
 
   // Billet de concert : sa valeur monte à l'approche du concert, puis tombe à 0.
-  // À la différence du Brie, les bonus se calculent sur les jours restants
-  // avant le décompte : 1 point, 1 de plus à moins de 11 jours, encore 1 à
-  // moins de 6 jours. Après le décompte, des jours restants sous 0 veulent dire
-  // que le concert est passé.
+  // À la différence du Brie, le gain se calcule sur les jours restants avant
+  // le décompte. Après le décompte, des jours restants sous 0 veulent dire que
+  // le concert est passé.
   if (item.name === BACKSTAGE_PASS) {
-    increaseQuality(item, 1);
-    if (item.sellIn < 11) {
-      increaseQuality(item, 1);
-    }
-    if (item.sellIn < 6) {
-      increaseQuality(item, 1);
-    }
+    increaseQuality(item, backstagePassGain(item.sellIn));
     item.sellIn = item.sellIn - 1;
     if (item.sellIn < 0) {
       item.quality = 0;
@@ -82,6 +75,20 @@ function updateItem(item: Item): void {
   // restants passés sous 0 (après le décompte du jour).
   item.sellIn = item.sellIn - 1;
   decreaseQuality(item, item.sellIn < 0 ? 2 : 1);
+}
+
+// Points gagnés par un billet en une nuit, selon ses jours restants. Le premier
+// seuil atteint l'emporte : l'ordre des tests compte. Seuils du code (< 6 et
+// < 11) ; la spécification dit « 5 jours ou moins » et « 10 jours ou moins »,
+// ce qui revient au même pour des jours entiers.
+function backstagePassGain(sellIn: number): number {
+  if (sellIn < 6) {
+    return 3;
+  }
+  if (sellIn < 11) {
+    return 2;
+  }
+  return 1;
 }
 
 // Ajoute des points un par un, tant que la qualité est sous MAX_QUALITY.

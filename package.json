@@ -9,7 +9,8 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "test:watch": "jest --watchAll",
-    "test:mutation": "stryker run"
+    "test:mutation": "stryker run",
+    "test:comparaison": "jest --config jest.comparaison.config.ts"
   },
   "license": "MIT",
   "private": true,

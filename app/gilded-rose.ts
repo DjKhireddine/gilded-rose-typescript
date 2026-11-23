@@ -40,41 +40,42 @@ export class GildedRose {
 }
 
 // Fait passer une nuit à un seul article. Fonction hors de la classe : elle n'a
-// besoin que de l'article, pas de tout l'inventaire.
+// besoin que de l'article, pas de tout l'inventaire. Un cas par article qui a
+// sa règle à lui ; tous les autres sont des articles normaux, traités par
+// défaut.
 function updateItem(item: Item): void {
-  // Sulfuras est un objet légendaire : ni ses jours restants ni sa qualité ne
-  // changent. On le met de côté d'entrée, pour que toute la suite ne concerne
-  // que des articles qui vieillissent.
-  if (item.name === SULFURAS) {
-    return;
-  }
+  switch (item.name) {
+    // Sulfuras est un objet légendaire : ni ses jours restants ni sa qualité
+    // ne changent.
+    case SULFURAS:
+      return;
 
-  // Aged Brie se bonifie en vieillissant : 1 point par nuit, 2 une fois les
-  // jours restants passés sous 0 (après le décompte du jour).
-  if (item.name === AGED_BRIE) {
-    item.sellIn = item.sellIn - 1;
-    increaseQuality(item, item.sellIn < 0 ? 2 : 1);
-    return;
-  }
+    // Aged Brie se bonifie en vieillissant : 1 point par nuit, 2 une fois les
+    // jours restants passés sous 0 (après le décompte du jour).
+    case AGED_BRIE:
+      item.sellIn = item.sellIn - 1;
+      increaseQuality(item, item.sellIn < 0 ? 2 : 1);
+      return;
 
-  // Billet de concert : sa valeur monte à l'approche du concert, puis tombe à 0.
-  // À la différence du Brie, le gain se calcule sur les jours restants avant
-  // le décompte. Après le décompte, des jours restants sous 0 veulent dire que
-  // le concert est passé.
-  if (item.name === BACKSTAGE_PASS) {
-    increaseQuality(item, backstagePassGain(item.sellIn));
-    item.sellIn = item.sellIn - 1;
-    if (item.sellIn < 0) {
-      item.quality = 0;
-    }
-    return;
-  }
+    // Billet de concert : sa valeur monte à l'approche du concert, puis tombe
+    // à 0. À la différence du Brie, le gain se calcule sur les jours restants
+    // avant le décompte. Après le décompte, des jours restants sous 0 veulent
+    // dire que le concert est passé.
+    case BACKSTAGE_PASS:
+      increaseQuality(item, backstagePassGain(item.sellIn));
+      item.sellIn = item.sellIn - 1;
+      if (item.sellIn < 0) {
+        item.quality = 0;
+      }
+      return;
 
-  // Article normal : tout article sans règle à lui (Conjured compris, que le
-  // code ne connaît pas encore). Il perd 1 point par nuit, 2 une fois les jours
-  // restants passés sous 0 (après le décompte du jour).
-  item.sellIn = item.sellIn - 1;
-  decreaseQuality(item, item.sellIn < 0 ? 2 : 1);
+    // Article normal : tout article sans règle à lui (Conjured compris, que le
+    // code ne connaît pas encore). Il perd 1 point par nuit, 2 une fois les
+    // jours restants passés sous 0 (après le décompte du jour).
+    default:
+      item.sellIn = item.sellIn - 1;
+      decreaseQuality(item, item.sellIn < 0 ? 2 : 1);
+  }
 }
 
 // Points gagnés par un billet en une nuit, selon ses jours restants. Le premier

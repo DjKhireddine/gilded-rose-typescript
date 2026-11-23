@@ -3,8 +3,9 @@ import { Item, GildedRose } from '@/gilded-rose';
 /**
  * Tests unitaires, règle par règle.
  *
- * Chaque test crée un seul article, laisse passer une nuit et vérifie ses
- * jours restants (sellIn) et sa qualité (quality).
+ * Sauf dans la partie « Inventaire », chaque test crée un seul article,
+ * laisse passer une nuit et vérifie ses jours restants (sellIn) et sa
+ * qualité (quality).
  *
  * Les tests marqués « comportement actuel » figent ce que fait le code
  * aujourd'hui dans des cas que la spécification ne décrit pas, ou qu'elle
@@ -22,6 +23,7 @@ const NORMAL = '+5 Dexterity Vest';
 const CONJURED = 'Conjured Mana Cake';
 const AGED_BRIE = 'Aged Brie';
 const BACKSTAGE_PASS = 'Backstage passes to a TAFKAL80ETC concert';
+const SULFURAS = 'Sulfuras, Hand of Ragnaros';
 
 // Crée un article, laisse passer une nuit et renvoie ses nouvelles valeurs.
 function afterOneNight(name: string, sellIn: number, quality: number) {
@@ -207,5 +209,46 @@ describe('Billet de concert (Backstage passes)', () => {
   // que pour l'article normal.
   it('au-dessus de 50, garde sa qualité sans être ramené à 50 (comportement actuel)', () => {
     expect(afterOneNight(BACKSTAGE_PASS, 5, 60)).toEqual({ sellIn: 4, quality: 60 });
+  });
+});
+
+/**
+ * Sulfuras : objet légendaire, il ne change jamais, ni ses jours restants, ni
+ * sa qualité.
+ */
+describe('Sulfuras', () => {
+  it('ne change jamais : ni ses jours, ni sa qualité', () => {
+    expect(afterOneNight(SULFURAS, 5, 80)).toEqual({ sellIn: 5, quality: 80 });
+  });
+
+  // Une fois la date passée, les autres articles suivent des règles en plus
+  // (perte doublée, chute du billet) : Sulfuras ne doit en suivre aucune.
+  it('ne change pas non plus après sa date', () => {
+    expect(afterOneNight(SULFURAS, -1, 80)).toEqual({ sellIn: -1, quality: 80 });
+  });
+});
+
+/**
+ * Inventaire : la fonction traite toute une liste d'articles.
+ */
+describe('Inventaire', () => {
+  // Vérifie que la boucle applique à chaque article sa propre règle, sans
+  // mélange entre articles voisins.
+  it('met à jour chaque article de la liste, selon sa propre règle', () => {
+    const items = new GildedRose([
+      new Item(NORMAL, 10, 20),
+      new Item(AGED_BRIE, 10, 20),
+    ]).updateQuality();
+    expect(items.map(({ sellIn, quality }) => ({ sellIn, quality }))).toEqual([
+      { sellIn: 9, quality: 19 },
+      { sellIn: 9, quality: 21 },
+    ]);
+  });
+
+  // new GildedRose() sans argument utilise une liste vide par défaut. C'est le
+  // seul chemin du code que le golden master n'emprunte pas : sans ce test, la
+  // couverture des branches tomberait sous 100 %.
+  it('sans article, renvoie une liste vide', () => {
+    expect(new GildedRose().updateQuality()).toEqual([]);
   });
 });

@@ -1,0 +1,23 @@
+%% Schéma « Avant » : le chemin de décision de updateQuality, tel qu'il est dans le code d'origine.
+%% Les cases rouges signalent les problèmes. Les comptages sont vérifiés sur app/gilded-rose.ts.
+%% Les seuils sont écrits comme dans le code (« moins de 11 jours » pour sellIn < 11).
+%%{init: {"flowchart": {"wrappingWidth": 320}}}%%
+flowchart LR
+    A([Chaque nuit, pour chaque article]) --> B{"Ni Brie ni billet de concert ?<br/>⚠ noms d'articles écrits en dur :<br/>8 fois dans la fonction"}
+    B -- oui --> C["La note baisse de 1<br/>si au-dessus de 0, sauf Sulfuras<br/>⚠ plancher 0 vérifié, 1re fois"]
+    B -- non --> D["La note monte de 1 si sous 50<br/>billet : +1 de plus à moins de 11 jours,<br/>et encore +1 à moins de 6 jours,<br/>chaque fois si toujours sous 50<br/>⚠ plafond 50 vérifié 3 fois ici"]
+    C --> E["Un jour de moins<br/>sauf Sulfuras"]
+    D --> E
+    E --> F{"Date dépassée ?<br/>(jours restants sous 0)"}
+    F -- non --> L([Article suivant])
+    F -- oui --> G{Brie ?}
+    G -- oui --> H["La note monte encore de 1 si sous 50<br/>⚠ 2e règle du Brie, loin de la 1re<br/>⚠ plafond 50 vérifié, 4e fois"]
+    G -- non --> I{Billet de concert ?}
+    I -- oui --> J["La note tombe à 0<br/>⚠ 2e règle du billet, loin de la 1re"]
+    I -- non --> K["La note baisse encore de 1<br/>si au-dessus de 0, sauf Sulfuras<br/>⚠ 5 conditions imbriquées pour arriver ici<br/>⚠ plancher 0 vérifié, 2e fois"]
+    H --> L
+    J --> L
+    K --> L
+
+    classDef probleme fill:#fdecea,stroke:#c62828,stroke-width:2px,color:#8e0000
+    class B,C,D,H,J,K probleme

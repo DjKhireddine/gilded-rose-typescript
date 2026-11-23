@@ -10,6 +10,14 @@ export class Item {
   }
 }
 
+// Les trois articles qui ont une règle à eux. Une constante plutôt que le nom
+// recopié : une faute de frappe dans une copie du nom changerait la règle de
+// l'article sans aucune erreur, alors qu'une faute dans le nom de la constante
+// ne compile pas.
+const AGED_BRIE = 'Aged Brie';
+const BACKSTAGE_PASS = 'Backstage passes to a TAFKAL80ETC concert';
+const SULFURAS = 'Sulfuras, Hand of Ragnaros';
+
 export class GildedRose {
   items: Array<Item>;
 
@@ -29,16 +37,16 @@ export class GildedRose {
 // Fait passer une nuit à un seul article. Fonction hors de la classe : elle n'a
 // besoin que de l'article, pas de tout l'inventaire.
 function updateItem(item: Item): void {
-  if (item.name != 'Aged Brie' && item.name != 'Backstage passes to a TAFKAL80ETC concert') {
+  if (item.name !== AGED_BRIE && item.name !== BACKSTAGE_PASS) {
     if (item.quality > 0) {
-      if (item.name != 'Sulfuras, Hand of Ragnaros') {
+      if (item.name !== SULFURAS) {
         item.quality = item.quality - 1;
       }
     }
   } else {
     if (item.quality < 50) {
       item.quality = item.quality + 1;
-      if (item.name == 'Backstage passes to a TAFKAL80ETC concert') {
+      if (item.name === BACKSTAGE_PASS) {
         if (item.sellIn < 11) {
           if (item.quality < 50) {
             item.quality = item.quality + 1;
@@ -52,14 +60,14 @@ function updateItem(item: Item): void {
       }
     }
   }
-  if (item.name != 'Sulfuras, Hand of Ragnaros') {
+  if (item.name !== SULFURAS) {
     item.sellIn = item.sellIn - 1;
   }
   if (item.sellIn < 0) {
-    if (item.name != 'Aged Brie') {
-      if (item.name != 'Backstage passes to a TAFKAL80ETC concert') {
+    if (item.name !== AGED_BRIE) {
+      if (item.name !== BACKSTAGE_PASS) {
         if (item.quality > 0) {
-          if (item.name != 'Sulfuras, Hand of Ragnaros') {
+          if (item.name !== SULFURAS) {
             item.quality = item.quality - 1;
           }
         }

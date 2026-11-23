@@ -37,11 +37,16 @@ export class GildedRose {
 // Fait passer une nuit à un seul article. Fonction hors de la classe : elle n'a
 // besoin que de l'article, pas de tout l'inventaire.
 function updateItem(item: Item): void {
+  // Sulfuras est un objet légendaire : ni ses jours restants ni sa qualité ne
+  // changent. On le met de côté d'entrée, pour que toute la suite ne concerne
+  // que des articles qui vieillissent.
+  if (item.name === SULFURAS) {
+    return;
+  }
+
   if (item.name !== AGED_BRIE && item.name !== BACKSTAGE_PASS) {
     if (item.quality > 0) {
-      if (item.name !== SULFURAS) {
-        item.quality = item.quality - 1;
-      }
+      item.quality = item.quality - 1;
     }
   } else {
     if (item.quality < 50) {
@@ -60,16 +65,12 @@ function updateItem(item: Item): void {
       }
     }
   }
-  if (item.name !== SULFURAS) {
-    item.sellIn = item.sellIn - 1;
-  }
+  item.sellIn = item.sellIn - 1;
   if (item.sellIn < 0) {
     if (item.name !== AGED_BRIE) {
       if (item.name !== BACKSTAGE_PASS) {
         if (item.quality > 0) {
-          if (item.name !== SULFURAS) {
-            item.quality = item.quality - 1;
-          }
+          item.quality = item.quality - 1;
         }
       } else {
         item.quality = item.quality - item.quality;

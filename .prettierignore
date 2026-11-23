@@ -1,0 +1,7 @@
+# Textes rédigés (règles du kata, licence, documentation) : mis en forme à la main.
+*.md
+license.txt
+
+# Fichiers produits par les outils.
+package-lock.json
+docs/schemas

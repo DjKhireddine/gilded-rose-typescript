@@ -93,7 +93,7 @@ describe('Article normal', () => {
   // La spécification demande qu'un article « Conjured » se dégrade deux fois
   // plus vite, mais le code ne le connaît pas encore : il le traite comme un
   // article normal. Ce test sera remplacé quand la fonctionnalité sera ajoutée.
-  it('« Conjured » est pour l\'instant traité comme un article normal (comportement actuel)', () => {
+  it("« Conjured » est pour l'instant traité comme un article normal (comportement actuel)", () => {
     expect(afterOneNight(CONJURED, 3, 6)).toEqual({ sellIn: 2, quality: 5 });
   });
 });
@@ -130,7 +130,7 @@ describe('Aged Brie', () => {
 
   // Le premier point amène la qualité à 50 ; le second n'est alors pas ajouté,
   // car la qualité n'est plus sous 50. Résultat : 50, pas 51.
-  it('après sa date, à 49, ne gagne qu\'un point : le plafond de 50 bloque le second', () => {
+  it("après sa date, à 49, ne gagne qu'un point : le plafond de 50 bloque le second", () => {
     expect(afterOneNight(AGED_BRIE, 0, 49)).toEqual({ sellIn: -1, quality: 50 });
   });
 

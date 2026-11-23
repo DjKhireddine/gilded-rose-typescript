@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Gilded Rose kata in TypeScript",
   "scripts": {
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watchAll",
     "test:mutation": "stryker run"

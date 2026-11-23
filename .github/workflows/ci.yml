@@ -1,0 +1,45 @@
+# Intégration continue : à chaque envoi sur GitHub, tout le projet est vérifié
+# sur une machine neuve, avec les versions exactes de package-lock.json.
+# Une seule vérification en échec suffit à marquer l'envoi en rouge.
+name: Intégration continue
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Droits minimaux : le travail lit le dépôt, il n'écrit rien.
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    name: Types, qualité, mise en forme, tests et mutation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      # Installation exacte, à partir de package-lock.json.
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Vérification des types (TypeScript strict)
+        run: npm run typecheck
+
+      - name: Qualité du code (ESLint)
+        run: npm run lint
+
+      - name: Mise en forme (Prettier)
+        run: npm run format:check
+
+      # --ci : un instantané absent fait échouer le test au lieu d'être créé.
+      - name: Tests et couverture à 100 %
+        run: npm test -- --ci
+
+      - name: Tests de mutation (Stryker, seuil 100 %)
+        run: npm run test:mutation

@@ -1,0 +1,21 @@
+%% Schéma « Après » : le chemin de décision de updateQuality après la refacto et l'ajout de Conjured.
+%% Tiré de app/gilded-rose.ts. Les cases vertes marquent ce que la refacto a réglé, la case bleue la nouvelle règle Conjured.
+%% Les seuils sont écrits comme dans le code (« moins de 11 jours » pour sellIn < 11).
+%% Les flèches en pointillé vont vers les deux fonctions de bornes qu'utilisent les règles.
+%%{init: {"flowchart": {"wrappingWidth": 320}}}%%
+flowchart LR
+    A([Chaque nuit, pour chaque article]) --> B{"Quel article ?<br/>✓ un seul aiguillage (switch)<br/>✓ chaque nom écrit une seule fois"}
+    B -- Sulfuras --> C["Rien ne change"]
+    B -- Aged Brie --> D["Un jour de moins,<br/>puis la note monte de 1,<br/>de 2 si les jours restants sont sous 0"]
+    B -- billet de concert --> E["La note monte de 3 à moins de 6 jours,<br/>de 2 à moins de 11 jours, sinon de 1,<br/>puis un jour de moins ;<br/>jours restants sous 0 : la note tombe à 0"]
+    B -- tout autre article --> F["Article normal : un jour de moins,<br/>puis la note baisse de 1,<br/>de 2 si les jours restants sont sous 0"]
+    F -- "si le nom commence<br/>par « Conjured »" --> H["Conjured : baisse doublée,<br/>2, ou 4 si les jours restants sont sous 0"]
+    D -. utilise .-> M["Plafond : la note monte point par point,<br/>tant qu'elle est sous 50<br/>✓ vérifié en un seul endroit"]
+    E -. utilise .-> M
+    F -. utilise .-> N["Plancher : la note baisse point par point,<br/>tant qu'elle est au-dessus de 0<br/>✓ vérifié en un seul endroit"]
+    H -. utilise .-> N
+
+    classDef ameliore fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef nouveau fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
+    class B,M,N ameliore
+    class H nouveau

@@ -14,7 +14,7 @@ import { Item, GildedRose } from '@/gilded-rose';
 // dates passées, plancher de 0, plafond de 50, chute des billets après le concert.
 const DAYS = 30;
 
-// Même inventaire que le texttest_fixture du kata (test/golden-master-text-test.ts).
+// Même inventaire que le texttest_fixture du kata (test/golden-master-text-test.ts dans la source).
 function createInventory(): Item[] {
   return [
     new Item('+5 Dexterity Vest', 10, 20),

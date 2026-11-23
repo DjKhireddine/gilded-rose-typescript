@@ -89,12 +89,53 @@ describe('Article normal', () => {
     const [item] = new GildedRose([new Item(NORMAL, 10, 20)]).updateQuality();
     expect(item.name).toBe(NORMAL);
   });
+});
 
-  // La spécification demande qu'un article « Conjured » se dégrade deux fois
-  // plus vite, mais le code ne le connaît pas encore : il le traite comme un
-  // article normal. Ce test sera remplacé quand la fonctionnalité sera ajoutée.
-  it("« Conjured » est pour l'instant traité comme un article normal (comportement actuel)", () => {
-    expect(afterOneNight(CONJURED, 3, 6)).toEqual({ sellIn: 2, quality: 5 });
+/**
+ * Article Conjured : la spécification dit qu'il « se dégrade deux fois plus
+ * vite que les objets normaux ». Il perd donc 2 points par nuit, et 4 une fois
+ * les jours restants passés sous 0 (après le décompte du jour) : le double des
+ * 1 et 2 points d'un article normal. Chaque point n'est retiré que si la
+ * qualité est encore au-dessus de 0.
+ * Il est reconnu au début de son nom : la spécification parle d'un fournisseur
+ * de produits invoqués, donc d'une famille d'articles, pas d'un seul nom.
+ *
+ * Tests écrits avant le code : tant que la règle n'existe pas, ils sont
+ * marqués it.failing, et Jest exige qu'ils échouent.
+ */
+describe('Article Conjured', () => {
+  it.failing('perd 2 points par nuit', () => {
+    expect(afterOneNight(CONJURED, 3, 6)).toEqual({ sellIn: 2, quality: 4 });
+  });
+
+  // Charnière, comme pour l'article normal : à sellIn 1, il reste 0 jour après
+  // le décompte, ce qui n'est pas sous 0 : pas encore de doublement.
+  it.failing('perd encore 2 points, pas 4, la veille de sa date (sellIn 1)', () => {
+    expect(afterOneNight(CONJURED, 1, 6)).toEqual({ sellIn: 0, quality: 4 });
+  });
+
+  it.failing('perd 4 points par nuit une fois sa date passée', () => {
+    expect(afterOneNight(CONJURED, 0, 10)).toEqual({ sellIn: -1, quality: 6 });
+  });
+
+  // Plancher : avec 1 point pour 2 à perdre, ou 3 pour 4, la qualité s'arrête
+  // à 0 au lieu de passer en négatif.
+  it.failing('ne descend jamais sous 0', () => {
+    expect(afterOneNight(CONJURED, 3, 1)).toEqual({ sellIn: 2, quality: 0 });
+    expect(afterOneNight(CONJURED, 0, 3)).toEqual({ sellIn: -1, quality: 0 });
+  });
+
+  // Fige le choix de reconnaître Conjured au début du nom, et non au seul nom
+  // de l'article d'exemple.
+  it.failing('reconnaît tout article dont le nom commence par « Conjured »', () => {
+    expect(afterOneNight('Conjured Sword', 3, 6)).toEqual({ sellIn: 2, quality: 4 });
+  });
+
+  // Contre-exemple : seul le début du nom compte. Un nom qui contient
+  // « Conjured » plus loin reste un article normal, avant comme après l'ajout
+  // de la règle.
+  it('un nom qui contient « Conjured » sans commencer par lui reste un article normal', () => {
+    expect(afterOneNight('Elixir of the Conjured', 3, 6)).toEqual({ sellIn: 2, quality: 5 });
   });
 });
 
